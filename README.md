@@ -2,7 +2,7 @@
 
 An AI CTO for small and midsize businesses. Upload a proposal, estimate or contract from a developer, agency or IT company, and get an email with possible red flags, suggestions and ready-to-send questions, plus a full PDF report.
 
-Built by [Sid Gawshinde](https://gawshinde.com), fractional CTO. Free to use, free to fork.
+Built by [Siddharth Gawshinde](https://gawshinde.com). Free to use, free to fork.
 
 ## What it does
 
@@ -58,7 +58,7 @@ Everything is set with environment variables. [.env.example](.env.example) lists
 | `EMAIL_TRANSPORT` | `resend` (default) to send with the Resend API, `smtp` for any SMTP service, `log` to write emails to `data/outbox` |
 | `EMAIL_FROM`, `RESEND_API_KEY` | Your sending address (on a domain verified in Resend) and Resend key. `SMTP_*` is only needed with `EMAIL_TRANSPORT=smtp`. |
 | `PRIVACY_URL` | Link to your privacy policy, shown under the form |
-| `OWNER_NAME`, `AI_NAME`, `SITE_URL`, `CTA_URL`, `CONTACT_EMAIL` | Your details, used on the page, in the email and in the report |
+| `OWNER_NAME`, `AI_NAME`, `SITE_URL`, `CONTACT_EMAIL` | Your details, used on the page, in the email and in the report |
 | `MAILING_ADDRESS` | Postal address for the email footer |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile spam check. Strongly recommended in production. |
 | `LIMIT_PER_EMAIL_PER_DAY`, `LIMIT_PER_IP_PER_DAY`, `LIMIT_TOTAL_PER_DAY` | Caps that protect your AI bill |

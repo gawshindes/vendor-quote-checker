@@ -34,7 +34,6 @@ RESEND_API_KEY=<key>
 PRIVACY_URL=https://yourdomain.com/privacy
 OWNER_NAME=Your Name
 SITE_URL=https://yourdomain.com
-CTA_URL=https://yourdomain.com/#start
 CONTACT_EMAIL=you@yourdomain.com
 MAILING_ADDRESS=<postal address>
 REPO_URL=https://github.com/<you>/vendor-quote-checker

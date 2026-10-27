@@ -33,11 +33,9 @@ const config = {
   brand: {
     toolName: env('TOOL_NAME', 'Vendor quote checker'),
     aiName: env('AI_NAME', 'AI CTO'),
-    ownerName: env('OWNER_NAME', 'Sid Gawshinde'),
-    ownerTitle: env('OWNER_TITLE', 'Fractional CTO'),
+    ownerName: env('OWNER_NAME', 'Siddharth Gawshinde'),
     siteUrl: env('SITE_URL', 'https://gawshinde.com').replace(/\/+$/, ''),
-    ctaUrl: env('CTA_URL', 'https://gawshinde.com/#start'),
-    contactEmail: env('CONTACT_EMAIL', 'sid@gawshinde.com'),
+    contactEmail: env('CONTACT_EMAIL', 'siddharth@gawshinde.com'),
     mailingAddress: env('MAILING_ADDRESS', ''),
     repoUrl: env('REPO_URL', 'https://github.com/'),
     privacyUrl: env('PRIVACY_URL', ''),
@@ -60,8 +58,8 @@ const config = {
   email: {
     transport: env('EMAIL_TRANSPORT', 'resend').toLowerCase(), // resend | smtp | log
     resendKey: env('RESEND_API_KEY'),
-    from: env('EMAIL_FROM', 'AI CTO by Sid Gawshinde <reviews@gawshinde.com>'),
-    replyTo: env('EMAIL_REPLY_TO', env('CONTACT_EMAIL', 'sid@gawshinde.com')),
+    from: env('EMAIL_FROM', 'AI CTO by Siddharth Gawshinde <reviews@gawshinde.com>'),
+    replyTo: env('EMAIL_REPLY_TO', env('CONTACT_EMAIL', 'siddharth@gawshinde.com')),
     bcc: env('EMAIL_BCC', ''),
     smtp: {
       host: env('SMTP_HOST'),

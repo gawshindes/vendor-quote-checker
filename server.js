@@ -59,8 +59,8 @@ function renderPage() {
   const b = config.brand;
   const html = fs.readFileSync(path.join(config.paths.public, 'index.html'), 'utf8');
   const values = {
-    TOOL_NAME: b.toolName, AI_NAME: b.aiName, OWNER_NAME: b.ownerName, OWNER_TITLE: b.ownerTitle,
-    SITE_URL: b.siteUrl, CTA_URL: b.ctaUrl, REPO_URL: b.repoUrl, BASE_URL: config.baseUrl.replace(/\/+$/, ''),
+    TOOL_NAME: b.toolName, AI_NAME: b.aiName, OWNER_NAME: b.ownerName, CONTACT_EMAIL: b.contactEmail,
+    SITE_URL: b.siteUrl, REPO_URL: b.repoUrl, BASE_URL: config.baseUrl.replace(/\/+$/, ''),
     MAX_FILE_MB: config.limits.maxFileMb, MAX_PAGES: config.limits.maxPages, PER_EMAIL: config.limits.perEmailPerDay,
     TURNSTILE_SITE_KEY: config.turnstile.siteKey, YEAR: new Date().getFullYear(), PRIVACY_URL: b.privacyUrl,
   };
