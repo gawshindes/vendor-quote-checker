@@ -23,6 +23,10 @@ if (process.env.NODE_ENV === 'production') {
   if (config.turnstile.siteKey && !config.turnstile.secret) console.warn('Warning: TURNSTILE_SITE_KEY is set without TURNSTILE_SECRET_KEY, so the widget shows but nothing is verified.');
   if (config.llm.provider === 'mock') console.warn('Warning: LLM_PROVIDER=mock. Every visitor gets the same sample review.');
   if (config.email.transport === 'log') console.warn('Warning: EMAIL_TRANSPORT=log. No email is sent.');
+  const appDir = path.resolve(__dirname);
+  if (config.dataDir === appDir || config.dataDir.startsWith(appDir + path.sep)) {
+    console.warn(`Warning: DATA_DIR (${config.dataDir}) is inside the app folder, so a redeploy may delete queued reviews and subscribers. Set DATA_DIR=~/vqc-data.`);
+  }
 }
 
 const app = express();
@@ -149,6 +153,6 @@ function csvSafe(value) {
 app.use((req, res) => res.status(404).type('text').send('Not found'));
 
 app.listen(config.port, () => {
-  console.log(`Vendor quote checker on port ${config.port} (AI provider: ${config.llm.provider}${config.llm.model ? `, model ${config.llm.model}` : ''}, email: ${config.email.transport})`);
+  console.log(`Vendor quote checker on port ${config.port} (AI provider: ${config.llm.provider}${config.llm.model ? `, model ${config.llm.model}` : ''}, email: ${config.email.transport}, data: ${config.dataDir})`);
   resume();
 });

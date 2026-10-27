@@ -3,6 +3,7 @@
  * All settings come from environment variables (or a .env file in development).
  * See .env.example for the full list with explanations.
  */
+const os = require('node:os');
 const path = require('node:path');
 require('dotenv').config({ quiet: true });
 
@@ -25,7 +26,8 @@ const provider = env('LLM_PROVIDER', 'mock').toLowerCase();
 const config = {
   port: num('PORT', 3000),
   baseUrl: env('BASE_URL', 'http://localhost:3000'),
-  dataDir: path.resolve(env('DATA_DIR', path.join(__dirname, '..', 'data'))),
+  // "~/vqc-data" means a folder in the home directory, which survives redeploys on shared hosting.
+  dataDir: path.resolve(env('DATA_DIR', path.join(__dirname, '..', 'data')).replace(/^~(?=$|\/)/, os.homedir())),
   trustProxy: bool('TRUST_PROXY', true),
 
   brand: {

@@ -38,12 +38,12 @@ CTA_URL=https://yourdomain.com/#start
 CONTACT_EMAIL=you@yourdomain.com
 MAILING_ADDRESS=<postal address>
 REPO_URL=https://github.com/<you>/vendor-quote-checker
-DATA_DIR=/home/<username>/domains/tools.yourdomain.com/vqc-data
+DATA_DIR=~/vqc-data
 TURNSTILE_SITE_KEY=<site key>
 TURNSTILE_SECRET_KEY=<secret key>
 ```
 
-**`DATA_DIR` matters.** Hostinger replaces everything in `hbuilds/` and `public_html` on every deploy. Point `DATA_DIR` at a folder outside them, such as the `vqc-data` folder above, so queued reviews and opted-in subscribers survive a deploy. Your username is shown in hPanel and in File Manager paths.
+**`DATA_DIR` matters.** Hostinger replaces everything in `hbuilds/` and `public_html` on every deploy. `DATA_DIR=~/vqc-data` puts the data in a folder in your hosting account's home directory, outside them, so queued reviews and opted-in subscribers survive a deploy. The app creates the folder and prints its full path in the startup log.
 
 With `NODE_ENV=production`, the app refuses to start if a required setting is missing, and the deployment log says which one.
 
