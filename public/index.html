@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{TOOL_NAME}}: free AI review of vendor proposals | {{OWNER_NAME}}</title>
+<meta name="description" content="Upload a proposal, estimate or contract from a developer, agency or IT company. {{AI_NAME}} emails you possible red flags and the questions to ask before you decide. Free.">
+<link rel="canonical" href="{{BASE_URL}}/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{TOOL_NAME}} by {{OWNER_NAME}}">
+<meta property="og:description" content="A free AI review of vendor proposals for small and midsize businesses: possible red flags and questions to ask, by email.">
+<meta property="og:url" content="{{BASE_URL}}/">
+<meta name="theme-color" content="#1E4535">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Schibsted+Grotesk:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"{{TOOL_NAME}}","url":"{{BASE_URL}}/","applicationCategory":"BusinessApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"creator":{"@type":"Person","name":"{{OWNER_NAME}}","jobTitle":"{{OWNER_TITLE}}","url":"{{SITE_URL}}"}}</script>
+<script defer src="/app.js"></script>
+<!--TURNSTILE--><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script><!--/TURNSTILE-->
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="{{SITE_URL}}/"><span class="brand-name">{{OWNER_NAME}}</span><span class="brand-title">{{OWNER_TITLE}}</span></a>
+    <nav aria-label="Main navigation">
+      <a href="{{SITE_URL}}/#services">Services</a>
+      <a href="{{SITE_URL}}/#approach">Approach</a>
+      <a href="{{SITE_URL}}/#tools" aria-current="page">Free tools</a>
+      <a class="nav-cta" href="{{CTA_URL}}">Book an intro call</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap page">
+  <p class="crumb"><a href="{{SITE_URL}}/#tools">Free tools</a> <span aria-hidden="true">/</span> {{TOOL_NAME}}</p>
+
+  <!-- Step 1: the form -->
+  <section id="formView" class="split" aria-labelledby="pageTitle">
+    <div class="main-col">
+      <h1 id="pageTitle">{{TOOL_NAME}}</h1>
+      <p class="lede">Upload a proposal, estimate or contract from a developer, agency or IT company. We email you possible red flags and the questions to ask before you decide.</p>
+
+      <form id="reviewForm" class="form" novalidate>
+        <fieldset>
+          <legend>Your business</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="businessSize" value="small" required><span>Small business</span></label>
+            <label class="chip"><input type="radio" name="businessSize" value="midsize"><span>Midsize business</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Your role</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="role" value="owner" required><span>Business owner</span></label>
+            <label class="chip"><input type="radio" name="role" value="manager"><span>Manager</span></label>
+            <label class="chip"><input type="radio" name="role" value="other"><span>Other</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>The vendor’s document</legend>
+          <div class="drop" id="dropZone">
+            <div class="file-row" id="fileRow" hidden>
+              <div class="file-info">
+                <svg aria-hidden="true" width="26" height="32" viewBox="0 0 28 34" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 1h15l7 7v25H3z"/><path d="M18 1v7h7"/><path d="M8 17h12M8 22h12M8 27h8"/></svg>
+                <div><p class="file-name" id="fileName"></p><p class="file-meta" id="fileMeta"></p></div>
+              </div>
+              <button type="button" class="link-btn" id="removeFile">Remove</button>
+            </div>
+            <div class="pick-row">
+              <input id="document" name="document" type="file" accept="application/pdf,.pdf" class="sr-only">
+              <label for="document" class="btn secondary" id="pickLabel">Choose a PDF</label>
+              <span class="hint">or drag it here. PDF up to {{MAX_FILE_MB}} MB and {{MAX_PAGES}} pages.</span>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Where should we send it?</legend>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" placeholder="you@yourbusiness.com">
+            <p class="hint">We use it to send this review. Nothing else unless you tick the box below.</p>
+          </div>
+          <label class="check"><input type="checkbox" name="optIn" value="yes"><span>Also send me occasional notes on technology decisions for small and midsize businesses. Optional, and you can unsubscribe at any time.</span></label>
+        </fieldset>
+
+        <div class="confirm">
+          <label class="check"><input type="checkbox" name="acceptTerms" value="yes" required><span>I understand this review is for information only. It is not legal, financial or professional advice.</span></label>
+          <!--TURNSTILE--><div class="cf-turnstile" data-sitekey="{{TURNSTILE_SITE_KEY}}" data-theme="light"></div><!--/TURNSTILE-->
+          <p class="hint">Your document is sent to an AI model to write the review, then deleted once the email is sent.</p>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="btn primary" id="submitBtn">Email me the review</button>
+          <span class="hint" id="submitHint">Usually arrives within a few minutes.</span>
+        </div>
+        <p class="error" id="formError" role="alert" hidden></p>
+      </form>
+    </div>
+
+    <aside class="side-col">
+      <section>
+        <h2>What you get by email</h2>
+        <ul class="ruled">
+          <li><strong>Possible red flags</strong> that may affect cost or control of your systems</li>
+          <li><strong>Suggestions</strong> worth clarifying or adding to the agreement</li>
+          <li><strong>Questions</strong> written so you can send them to the vendor as they are</li>
+          <li><strong>Ongoing costs</strong> to ask about before launch</li>
+        </ul>
+      </section>
+      <section>
+        <h2>What it checks</h2>
+        <ul class="areas">
+          <li>Scope</li><li>Missing items</li><li>Pricing</li><li>Timeline</li><li>Change control</li><li>Acceptance</li><li>Ownership and access</li><li>Exit and handover</li><li>Team and delivery</li><li>Technical approach</li><li>Ongoing costs</li>
+        </ul>
+      </section>
+      <section class="quiet">
+        <p>The review is written by {{AI_NAME}}, an AI model. Its instructions and code are open source. <a href="{{REPO_URL}}">See them on GitHub</a></p>
+      </section>
+    </aside>
+  </section>
+
+  <!-- Step 2: confirmation -->
+  <section id="sentView" class="sent" hidden aria-labelledby="sentTitle" tabindex="-1">
+    <svg aria-hidden="true" width="56" height="42" viewBox="0 0 56 42" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="54" height="40"/><path d="M1 1l27 22L55 1"/></svg>
+    <h1 id="sentTitle">Your review is on its way.</h1>
+    <p class="lede">We are reviewing <strong id="sentFile"></strong> and will email the results to <strong id="sentEmail"></strong>. It usually arrives within a few minutes.</p>
+    <div class="sent-grid">
+      <div><h2>Not in your inbox?</h2><p>Check your spam or promotions folder. Look for the subject “Your vendor quote review”.</p></div>
+      <div><h2>Your document</h2><p>It is deleted from our server as soon as the review email is sent. We do not keep a copy.</p></div>
+      <div><h2>Wrong address?</h2><p><button type="button" class="link-btn" id="startAgain">Start again</button> with the right email. You can review up to {{PER_EMAIL}} documents a day.</p></div>
+    </div>
+    <div class="sent-cta">
+      <p>Weighing a bigger decision than one proposal? {{OWNER_NAME}} helps small and midsize businesses choose vendors and set technology priorities.</p>
+      <div class="sent-actions">
+        <a class="btn primary" href="{{CTA_URL}}">Book an intro call</a>
+        <button type="button" class="btn secondary" id="another">Review another document</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap bar">
+    <span>© {{YEAR}} {{OWNER_NAME}}. Independent technology leadership for small and midsize businesses.</span>
+    <div class="footer-links">
+      <a href="{{SITE_URL}}/#services">Services</a>
+      <a href="{{SITE_URL}}/#tools">Free tools</a>
+      <a href="{{REPO_URL}}">Open source on GitHub</a>
+      <a href="{{CTA_URL}}">Book an intro call</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

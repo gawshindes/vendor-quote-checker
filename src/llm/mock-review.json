@@ -1,0 +1,33 @@
+{
+  "is_reviewable": true,
+  "document_type": "proposal",
+  "vendor_name": "Brightpath Web Studio (sample)",
+  "project_summary": "A customer portal where clients log in, see their orders and download invoices, connected to the business's accounting software. The document says the price covers design, build and launch.",
+  "price_summary": { "total": "$38,500", "pricing_model": "fixed", "payment_terms": "50% on signing, 50% at launch" },
+  "summary": {
+    "headline": "The features appear clearly described. I could not find terms on code ownership, hosting or costs after launch.",
+    "overview": "The proposal lists the portal's features and appears to give a fixed price. Three areas may need answers: the portal appears to be hosted on the vendor's own account, I could not find terms on who owns the code, and the payment terms appear to call for half the fee before anything is delivered. Some smaller points, such as how changes are billed and how long defects are fixed at no cost, do not appear to be written down."
+  },
+  "items": [
+    { "type": "red_flag", "area": "ownership", "title": "Code ownership does not appear to be addressed", "detail": "I could not find any terms on who owns the code when the project ends. If ownership stays with the vendor, moving to another developer later could mean paying to rebuild.", "evidence": "I could not find this in the document" },
+    { "type": "red_flag", "area": "exit", "title": "Hosting appears to be on the vendor's account", "detail": "If the portal is hosted on the vendor's account, you may depend on them to keep it running and to hand it over if you part ways.", "evidence": "Page 2: \"Hosted on Brightpath's managed cloud platform.\"" },
+    { "type": "red_flag", "area": "pricing", "title": "Half the fee appears due before delivery", "detail": "Paying 50% up front may leave little leverage if the work slips. Payments tied to delivered milestones are often easier to manage.", "evidence": "Page 2: \"50% on signing, 50% at launch.\"" },
+    { "type": "suggestion", "area": "change_control", "title": "I could not find a process for changes", "detail": "The document does not appear to say how new requests are estimated, approved or billed. Changes are a common reason fixed prices grow.", "evidence": "I could not find this in the document" },
+    { "type": "suggestion", "area": "acceptance", "title": "A defect-fix period does not appear to be defined", "detail": "I could not find a stated period after launch during which the vendor fixes defects at no cost, or a way to report them.", "evidence": "I could not find this in the document" },
+    { "type": "suggestion", "area": "ongoing_costs", "title": "The monthly fee does not appear to have an amount", "detail": "The proposal mentions a monthly hosting and support fee, but I could not find a figure or a description of what it covers.", "evidence": "Page 2: \"Ongoing hosting and support billed monthly.\"" }
+  ],
+  "questions_to_send": [
+    "Will we own the source code, designs and data when the project is finished, and can that be written into the agreement?",
+    "Can the portal be hosted on an account in our company's name, with your team given access?",
+    "Could payments be tied to milestones, such as design approval, a working test version, and launch?",
+    "How do you estimate and approve changes we request during the project, and what rate applies to them?",
+    "How long after launch will you fix defects at no cost, and how do we report them?",
+    "What is the monthly hosting and support fee, and what does it include?"
+  ],
+  "ongoing_costs_to_ask_about": [
+    "Monthly hosting and support fee",
+    "Any fee the accounting software may charge for the connection",
+    "Renewals of paid plugins or licenses, if any"
+  ],
+  "limitations": "This sample review comes from the test model, not from reading your document. A real review cannot judge whether a price is fair for the market, the vendor's track record, or whether contract terms are legally sufficient."
+}

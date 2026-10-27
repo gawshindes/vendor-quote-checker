@@ -1,0 +1,30 @@
+'use strict';
+// Creates a small sample vendor proposal (data/sample-proposal.pdf) for testing.
+const fs = require('node:fs');
+const path = require('node:path');
+const PDFDocument = require('pdfkit');
+
+const out = path.join(__dirname, '..', 'data', 'sample-proposal.pdf');
+fs.mkdirSync(path.dirname(out), { recursive: true });
+const doc = new PDFDocument({ size: 'LETTER', margin: 72 });
+doc.pipe(fs.createWriteStream(out));
+const h = (t) => doc.moveDown().font('Helvetica-Bold').fontSize(14).text(t).moveDown(0.3).font('Helvetica').fontSize(11);
+doc.font('Helvetica-Bold').fontSize(20).text('Brightpath Web Studio (sample)');
+doc.font('Helvetica').fontSize(11).text('Proposal: Customer Portal for Harborline Supply (a made-up client)').moveDown();
+h('1. Overview');
+doc.text('Brightpath will design and build a customer portal where your clients can log in, view their order history, track deliveries and download invoices. The portal will connect to your accounting software so invoices appear automatically.');
+h('2. Scope');
+doc.text('Discovery workshop. Visual design for 8 screens. Build of the portal with secure login. Integration with your accounting software. Launch and go-live support for one week. The solution will be robust and scalable and follow industry standard practices.');
+h('3. Timeline');
+doc.text('Design: 3 weeks. Build: 8 weeks. Testing: 2 weeks. Launch in week 13, subject to timely feedback and content from the client.');
+doc.addPage();
+h('4. Hosting');
+doc.text('Hosted on Brightpath\'s managed cloud platform. Ongoing hosting and support billed monthly.');
+h('5. Investment');
+doc.text('Fixed price: $38,500. Payment terms: 50% on signing, 50% at launch.');
+h('6. Team');
+doc.text('A project manager, a designer and two developers from our delivery partners.');
+h('7. Acceptance');
+doc.text('The project is complete at launch.');
+doc.end();
+console.log('Wrote', out);
