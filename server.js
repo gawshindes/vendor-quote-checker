@@ -11,12 +11,18 @@ const multer = require('multer');
 const { config, checkConfig } = require('./src/config');
 const { readPdf, UserFacingError } = require('./src/pdf-text');
 const { enqueue, resume, stats } = require('./src/queue');
-const { checkLimits, recordUse, verifyTurnstile } = require('./src/guards');
+const { checkLimits, recordUse, releaseUse, verifyTurnstile } = require('./src/guards');
 
 const problems = checkConfig();
 if (problems.length) {
   console.error('Configuration problems:\n- ' + problems.join('\n- '));
   if (process.env.NODE_ENV === 'production') process.exit(1);
+}
+if (process.env.NODE_ENV === 'production') {
+  if (!config.turnstile.secret) console.warn('Warning: TURNSTILE_SECRET_KEY is not set, so bots can submit the form freely.');
+  if (config.turnstile.siteKey && !config.turnstile.secret) console.warn('Warning: TURNSTILE_SITE_KEY is set without TURNSTILE_SECRET_KEY, so the widget shows but nothing is verified.');
+  if (config.llm.provider === 'mock') console.warn('Warning: LLM_PROVIDER=mock. Every visitor gets the same sample review.');
+  if (config.email.transport === 'log') console.warn('Warning: EMAIL_TRANSPORT=log. No email is sent.');
 }
 
 const app = express();
@@ -52,10 +58,11 @@ function renderPage() {
     TOOL_NAME: b.toolName, AI_NAME: b.aiName, OWNER_NAME: b.ownerName, OWNER_TITLE: b.ownerTitle,
     SITE_URL: b.siteUrl, CTA_URL: b.ctaUrl, REPO_URL: b.repoUrl, BASE_URL: config.baseUrl.replace(/\/+$/, ''),
     MAX_FILE_MB: config.limits.maxFileMb, MAX_PAGES: config.limits.maxPages, PER_EMAIL: config.limits.perEmailPerDay,
-    TURNSTILE_SITE_KEY: config.turnstile.siteKey, YEAR: new Date().getFullYear(),
+    TURNSTILE_SITE_KEY: config.turnstile.siteKey, YEAR: new Date().getFullYear(), PRIVACY_URL: b.privacyUrl,
   };
   return html
     .replace(/<!--TURNSTILE-->([\s\S]*?)<!--\/TURNSTILE-->/g, config.turnstile.siteKey ? '$1' : '')
+    .replace(/<!--PRIVACY-->([\s\S]*?)<!--\/PRIVACY-->/g, b.privacyUrl ? '$1' : '')
     .replace(/\{\{([A-Z_]+)\}\}/g, (m, k) => (k in values ? esc(values[k]) : m));
 }
 let pageCache = null;
@@ -88,6 +95,7 @@ app.post('/api/review', (req, res) => {
       if (err.code === 'LIMIT_FILE_SIZE') return fail(413, `That file is larger than ${config.limits.maxFileMb} MB.`);
       return fail(400, 'The upload did not work. Please try again.');
     }
+    let reserved = null;
     try {
       const b = req.body || {};
       const email = String(b.email || '').trim().toLowerCase();
@@ -103,15 +111,21 @@ app.post('/api/review', (req, res) => {
       if (!(await verifyTurnstile(b['cf-turnstile-response'], ip))) return fail(400, 'The spam check did not pass. Please try again.');
       const limitMessage = checkLimits({ email, ip });
       if (limitMessage) return fail(429, limitMessage);
+      // Count it before the slow PDF read, so parallel requests cannot slip past the limits.
+      recordUse({ email, ip });
+      reserved = { email, ip };
 
       // Read it now, so problems are reported on the page instead of by email.
       const parsed = await readPdf(req.file.buffer, { maxPages: config.limits.maxPages, maxChars: config.limits.maxTextChars });
       const fileName = cleanFileName(req.file.originalname);
       await enqueue({ pdfBuffer: req.file.buffer, email, fileName, pages: parsed.pages, businessSize, role });
-      recordUse({ email, ip });
-      if (b.optIn === 'yes' && config.saveSubscribers) await saveSubscriber(email);
+      reserved = null;
+      if (b.optIn === 'yes' && config.saveSubscribers) {
+        await saveSubscriber(email).catch((e) => console.error('[api] could not save subscriber:', e.message));
+      }
       return res.status(202).json({ ok: true, email, fileName, pages: parsed.pages });
     } catch (e) {
+      if (reserved) releaseUse(reserved);
       if (e instanceof UserFacingError) return fail(400, e.message);
       console.error('[api] review request failed:', e);
       return fail(500, 'Something went wrong on our side. Please try again in a few minutes.');
@@ -123,7 +137,13 @@ async function saveSubscriber(email) {
   const file = config.paths.subscribers;
   await fsp.mkdir(path.dirname(file), { recursive: true });
   const exists = fs.existsSync(file);
-  await fsp.appendFile(file, `${exists ? '' : 'date,email,source\n'}${new Date().toISOString()},${email.replace(/[,\n\r]/g, '')},vendor-quote-checker\n`);
+  await fsp.appendFile(file, `${exists ? '' : 'date,email,source\n'}${new Date().toISOString()},${csvSafe(email)},vendor-quote-checker\n`);
+}
+
+/** Strips CSV separators and stops spreadsheet apps from running a value as a formula. */
+function csvSafe(value) {
+  const v = String(value).replace(/[,\n\r"]/g, '');
+  return /^[=+\-@\t]/.test(v) ? `'${v}` : v;
 }
 
 app.use((req, res) => res.status(404).type('text').send('Not found'));

@@ -32,7 +32,18 @@ LLM_PROVIDER=mock EMAIL_TRANSPORT=log npm start
 
 Open http://localhost:3000, upload `data/sample-proposal.pdf`, and the email (with the PDF attached) is written to `data/outbox/` as an `.eml` file you can open in any mail app. The `mock` provider returns a fixed sample review, so you can test everything without an API key.
 
-To use a real model, set `LLM_PROVIDER`, `LLM_MODEL` and that provider's API key in `.env`. To send real email, set `EMAIL_TRANSPORT=smtp` and the `SMTP_*` settings.
+To use a real model, set `LLM_PROVIDER`, `LLM_MODEL` and that provider's API key in `.env`. To send real email, set `EMAIL_TRANSPORT=resend`, `RESEND_API_KEY`, and an `EMAIL_FROM` on a domain you verified in Resend.
+
+## Testing
+
+```bash
+npm test                                  # automated tests: no API calls, no real email
+npm run check:llm                         # one real review with your provider (paid, a few cents or less)
+npm run check:llm -- my-quote.pdf --report  # your own PDF, also writes data/check-report.pdf
+npm run check:email -- you@gmail.com      # sends one real sample review email
+```
+
+`npm test` covers the upload endpoint end to end (with the mock model and emails written to a temp folder), input checks, daily limits including parallel requests, PDF reading, answer cleaning, the report, the Resend request, and each AI provider's request and error handling against a fake API. Run the two `check:` scripts after changing provider, model, or email settings.
 
 ## Configuration
 
@@ -44,8 +55,9 @@ Everything is set with environment variables. [.env.example](.env.example) lists
 | `LLM_MODEL` | The model name from your provider's documentation |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` | Only the one for your provider |
 | `LLM_INPUT` | `auto` (default) sends extracted text, or the PDF itself when it has no text. `text` or `pdf` forces one. |
-| `EMAIL_TRANSPORT` | `smtp` to send, `log` to write emails to `data/outbox` |
-| `EMAIL_FROM`, `SMTP_*` | Your sending address and SMTP details (any provider: Hostinger mail, Resend, Postmark, Brevo, Amazon SES) |
+| `EMAIL_TRANSPORT` | `resend` (default) to send with the Resend API, `smtp` for any SMTP service, `log` to write emails to `data/outbox` |
+| `EMAIL_FROM`, `RESEND_API_KEY` | Your sending address (on a domain verified in Resend) and Resend key. `SMTP_*` is only needed with `EMAIL_TRANSPORT=smtp`. |
+| `PRIVACY_URL` | Link to your privacy policy, shown under the form |
 | `OWNER_NAME`, `AI_NAME`, `SITE_URL`, `CTA_URL`, `CONTACT_EMAIL` | Your details, used on the page, in the email and in the report |
 | `MAILING_ADDRESS` | Postal address for the email footer |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile spam check. Strongly recommended in production. |
@@ -65,7 +77,7 @@ src/pdf-text.js        Reads text and page count from the PDF
 src/review.js          Builds the prompt, calls the model, cleans the answer
 src/llm/index.js       OpenAI, Anthropic and Gemini calls (plain HTTPS, no SDKs)
 src/report-pdf.js      The PDF report
-src/email.js           The review email and the failure email (SMTP via Nodemailer)
+src/email.js           The review email and the failure email (Resend API, or SMTP via Nodemailer)
 src/queue.js           Disk-backed job queue; survives restarts
 src/guards.js          Daily limits and the Turnstile check
 prompts/               The system prompt and user message sent to the model

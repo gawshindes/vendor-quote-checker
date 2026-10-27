@@ -59,7 +59,7 @@ async function processJob(id) {
     const review = await runReview({ ...parsed, pdfBuffer }, { businessSize: job.businessSize, role: job.role });
     const meta = { fileName: job.fileName, pages: parsed.pages, businessSize: job.businessSize, role: job.role, date: new Date() };
     const report = await buildReportPdf(review, meta);
-    await sendReviewEmail({ to: job.email, review, meta, pdfBuffer: report });
+    await sendReviewEmail({ to: job.email, review, meta, pdfBuffer: report, idempotencyKey: `review-${id}` });
     await removeJob(id);
     console.log(`[queue] ${id} sent in ${Math.round((Date.now() - started) / 1000)}s (${review.items.length} items)`);
   } catch (err) {
@@ -72,7 +72,7 @@ async function processJob(id) {
       return;
     }
     try {
-      await sendFailureEmail({ to: job.email, meta: { fileName: job.fileName } });
+      await sendFailureEmail({ to: job.email, meta: { fileName: job.fileName }, idempotencyKey: `failure-${id}` });
     } catch (mailErr) {
       console.error(`[queue] ${id} failure email also failed: ${mailErr.message}`);
     }

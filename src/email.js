@@ -1,7 +1,8 @@
 'use strict';
 /*
  * Sends the review email (short summary in the body, full report attached as a PDF)
- * and the failure email. Works with any SMTP service. EMAIL_TRANSPORT=log writes
+ * and the failure email. EMAIL_TRANSPORT=resend uses the Resend API, smtp works
+ * with any SMTP service, and log writes
  * the messages to data/outbox instead of sending them, for local testing.
  */
 const fs = require('node:fs');
@@ -21,7 +22,40 @@ function getTransport() {
   return transporter;
 }
 
-async function send(message) {
+/* Resend HTTP API: https://resend.com/docs/api-reference/emails/send-email */
+async function sendViaResend(message, idempotencyKey) {
+  const body = {
+    from: config.email.from,
+    to: [message.to],
+    subject: message.subject,
+    html: message.html,
+    text: message.text,
+  };
+  if (config.email.replyTo) body.reply_to = config.email.replyTo;
+  if (config.email.bcc) body.bcc = config.email.bcc.split(',').map((s) => s.trim()).filter(Boolean);
+  if (message.attachments) {
+    body.attachments = message.attachments.map((a) => ({ filename: a.filename, content: Buffer.from(a.content).toString('base64') }));
+  }
+  const headers = { authorization: `Bearer ${config.email.resendKey}`, 'content-type': 'application/json' };
+  // Stops a retried job from sending the same email twice (Resend keeps keys for 24 hours).
+  if (idempotencyKey) headers['idempotency-key'] = idempotencyKey.slice(0, 256);
+  let res;
+  try {
+    res = await fetch('https://api.resend.com/emails', { method: 'POST', headers, body: JSON.stringify(body), signal: AbortSignal.timeout(30000) });
+  } catch (err) {
+    throw new Error(`Could not reach Resend: ${err.message}`);
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(`Resend returned ${res.status}: ${data.message || data.name || 'unknown error'}`);
+    err.status = res.status;
+    throw err;
+  }
+  return { messageId: data.id, accepted: [message.to] };
+}
+
+async function send(message, { idempotencyKey } = {}) {
+  if (config.email.transport === 'resend') return sendViaResend(message, idempotencyKey);
   const info = await getTransport().sendMail({
     from: config.email.from,
     replyTo: config.email.replyTo || undefined,
@@ -73,7 +107,7 @@ function ctaBlock() {
 </td></tr>`;
 }
 
-async function sendReviewEmail({ to, review, meta, pdfBuffer }) {
+async function sendReviewEmail({ to, review, meta, pdfBuffer, idempotencyKey }) {
   const b = config.brand;
   const flags = review.items.filter((i) => i.type === 'red_flag');
   const suggs = review.items.filter((i) => i.type !== 'red_flag');
@@ -121,10 +155,10 @@ ${ctaBlock()}`;
     html: layout({ preheader, bodyHtml: body }),
     text,
     attachments: [{ filename: attachmentName, content: pdfBuffer, contentType: 'application/pdf' }],
-  });
+  }, { idempotencyKey });
 }
 
-async function sendFailureEmail({ to, meta }) {
+async function sendFailureEmail({ to, meta, idempotencyKey }) {
   const b = config.brand;
   const body = `<tr><td style="padding:28px 32px;font-family:${sans};font-size:15px;line-height:1.6;color:#33373A;">
 <h1 style="margin:0 0 14px;font-family:${serif};font-weight:normal;font-size:24px;color:#16181A;">I could not finish your review</h1>
@@ -136,7 +170,7 @@ async function sendFailureEmail({ to, meta }) {
     subject: `Your vendor quote review could not be completed: ${meta.fileName}`,
     html: layout({ preheader: 'Something went wrong. Your document has been deleted.', bodyHtml: body }),
     text: `I could not finish the review of ${meta.fileName}, so there is no report this time. Your document has been deleted. You can try again at ${config.baseUrl}.`,
-  });
+  }, { idempotencyKey });
 }
 
 function firstSentence(s) {

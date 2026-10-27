@@ -56,12 +56,25 @@ async function callOpenAI({ system, userText, pdfBase64 }) {
       text: { format: { type: 'json_object' } },
     },
   );
-  if (typeof data.output_text === 'string' && data.output_text) return data.output_text;
+  if (data.status === 'incomplete') {
+    const reason = data.incomplete_details?.reason || 'unknown';
+    // Reasoning tokens count toward max_output_tokens, so a long think can leave no room for the answer.
+    throw new LlmError(`OpenAI stopped before finishing (${reason}). If this is max_output_tokens, raise LLM_MAX_OUTPUT_TOKENS.`, { retryable: false });
+  }
   const parts = [];
   for (const item of data.output || []) {
-    for (const c of item.content || []) if (c.type === 'output_text' && c.text) parts.push(c.text);
+    for (const c of item.content || []) {
+      if (c.type === 'refusal') throw new LlmError(`OpenAI refused the request: ${c.refusal || ''}`.trim(), { retryable: false });
+      if (c.type === 'output_text' && c.text) parts.push(c.text);
+    }
   }
-  return parts.join('');
+  if (!parts.length && typeof data.output_text === 'string') parts.push(data.output_text);
+  return requireText(parts.join(''), 'OpenAI');
+}
+
+function requireText(text, provider) {
+  if (!text || !text.trim()) throw new LlmError(`${provider} returned an empty answer.`);
+  return text;
 }
 
 async function callAnthropic({ system, userText, pdfBase64 }) {
@@ -80,7 +93,11 @@ async function callAnthropic({ system, userText, pdfBase64 }) {
       messages: [{ role: 'user', content }],
     },
   );
-  return (data.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('');
+  if (data.stop_reason === 'max_tokens') {
+    throw new LlmError('Claude stopped at the output limit before finishing. Raise LLM_MAX_OUTPUT_TOKENS.', { retryable: false });
+  }
+  if (data.stop_reason === 'refusal') throw new LlmError('Claude declined to answer this document.', { retryable: false });
+  return requireText((data.content || []).filter((c) => c.type === 'text').map((c) => c.text).join(''), 'Claude');
 }
 
 async function callGemini({ system, userText, pdfBase64 }) {
@@ -98,8 +115,19 @@ async function callGemini({ system, userText, pdfBase64 }) {
     },
   );
   const cand = (data.candidates || [])[0];
-  if (!cand) throw new LlmError('Gemini returned no answer.', { retryable: false });
-  return (cand.content?.parts || []).map((p) => p.text || '').join('');
+  if (!cand) {
+    const blocked = data.promptFeedback?.blockReason;
+    throw new LlmError(`Gemini returned no answer${blocked ? ` (blocked: ${blocked})` : ''}.`, { retryable: false });
+  }
+  if (cand.finishReason === 'MAX_TOKENS') {
+    // Thinking tokens count toward maxOutputTokens on Gemini 2.5 and later.
+    throw new LlmError('Gemini stopped at the output limit before finishing. Raise LLM_MAX_OUTPUT_TOKENS.', { retryable: false });
+  }
+  if (cand.finishReason && cand.finishReason !== 'STOP') {
+    throw new LlmError(`Gemini stopped early (${cand.finishReason}).`, { retryable: false });
+  }
+  // Skip thought summaries if the model includes them.
+  return requireText((cand.content?.parts || []).filter((p) => !p.thought).map((p) => p.text || '').join(''), 'Gemini');
 }
 
 async function callMock() {

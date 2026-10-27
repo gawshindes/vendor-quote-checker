@@ -38,13 +38,15 @@ const config = {
     contactEmail: env('CONTACT_EMAIL', 'sid@gawshinde.com'),
     mailingAddress: env('MAILING_ADDRESS', ''),
     repoUrl: env('REPO_URL', 'https://github.com/'),
+    privacyUrl: env('PRIVACY_URL', ''),
   },
 
   llm: {
     provider, // openai | anthropic | gemini | mock
     model: env('LLM_MODEL', ''),
     inputMode: env('LLM_INPUT', 'auto').toLowerCase(), // auto | text | pdf
-    maxOutputTokens: num('LLM_MAX_OUTPUT_TOKENS', 8000),
+    // Reasoning ("thinking") models count their thinking toward this limit, so leave headroom.
+    maxOutputTokens: num('LLM_MAX_OUTPUT_TOKENS', 16000),
     timeoutMs: num('LLM_TIMEOUT_SECONDS', 240) * 1000,
     keys: {
       openai: env('OPENAI_API_KEY'),
@@ -54,7 +56,8 @@ const config = {
   },
 
   email: {
-    transport: env('EMAIL_TRANSPORT', 'smtp').toLowerCase(), // smtp | log
+    transport: env('EMAIL_TRANSPORT', 'resend').toLowerCase(), // resend | smtp | log
+    resendKey: env('RESEND_API_KEY'),
     from: env('EMAIL_FROM', 'AI CTO by Sid Gawshinde <reviews@gawshinde.com>'),
     replyTo: env('EMAIL_REPLY_TO', env('CONTACT_EMAIL', 'sid@gawshinde.com')),
     bcc: env('EMAIL_BCC', ''),
@@ -105,6 +108,11 @@ function checkConfig() {
     if (!llm.keys[llm.provider]) problems.push(`The API key for ${llm.provider} is not set.`);
   }
   if (!['auto', 'text', 'pdf'].includes(llm.inputMode)) problems.push('LLM_INPUT must be auto, text or pdf.');
+  if (!['resend', 'smtp', 'log'].includes(email.transport)) problems.push('EMAIL_TRANSPORT must be resend, smtp or log.');
+  if (email.transport === 'resend' && !email.resendKey) problems.push('RESEND_API_KEY is required when EMAIL_TRANSPORT=resend.');
+  if (email.transport !== 'log' && /@example\.(com|org|net)>?$/i.test(email.from.trim().replace(/"$/, ''))) {
+    problems.push('EMAIL_FROM still uses example.com. Use an address on a domain you verified in Resend.');
+  }
   if (email.transport === 'smtp' && (!email.smtp.host || !email.smtp.user || !email.smtp.pass)) {
     problems.push('SMTP_HOST, SMTP_USER and SMTP_PASS are required when EMAIL_TRANSPORT=smtp.');
   }

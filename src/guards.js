@@ -35,6 +35,17 @@ function recordUse({ email, ip }) {
   counts.ip.set(ip, (counts.ip.get(ip) || 0) + 1);
 }
 
+/** Gives back a use recorded for a request that was then rejected (bad PDF, server error). */
+function releaseUse({ email, ip }) {
+  const dec = (map, key) => {
+    const n = (map.get(key) || 0) - 1;
+    if (n > 0) map.set(key, n); else map.delete(key);
+  };
+  counts.total = Math.max(0, counts.total - 1);
+  dec(counts.email, email);
+  dec(counts.ip, ip);
+}
+
 async function verifyTurnstile(token, ip) {
   if (!config.turnstile.secret) return true; // not configured
   if (!token) return false;
@@ -52,4 +63,4 @@ async function verifyTurnstile(token, ip) {
   }
 }
 
-module.exports = { checkLimits, recordUse, verifyTurnstile };
+module.exports = { checkLimits, recordUse, releaseUse, verifyTurnstile };

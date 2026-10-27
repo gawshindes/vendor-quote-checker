@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "sample": "node scripts/make-sample-proposal.js"
+    "sample": "node scripts/make-sample-proposal.js",
+    "test": "node --test",
+    "check:llm": "node scripts/check-llm.js",
+    "check:email": "node scripts/check-email.js"
   },
   "engines": {
     "node": ">=20"
