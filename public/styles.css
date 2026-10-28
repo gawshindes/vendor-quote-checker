@@ -41,6 +41,10 @@ a:hover { color: var(--muted); }
 .topic-nav a:hover { color: var(--ink); text-decoration: underline; }
 .topic-nav a[aria-current="page"] { color: var(--ink); font-weight: 600; }
 
+.crumb { margin-bottom: 12px; font-size: 14px; color: var(--muted); }
+.crumb a { color: var(--muted); text-decoration: underline; }
+.crumb a:hover { color: var(--ink); }
+
 h1 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 3.6vw, 44px); line-height: 1.12; letter-spacing: -0.015em; }
 .lede { margin-top: 16px; font-size: clamp(18px, 1.6vw, 20px); line-height: 1.55; color: var(--body); }
 

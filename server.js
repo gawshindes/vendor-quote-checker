@@ -54,6 +54,8 @@ app.use((req, res, next) => {
 });
 
 /* ---------- Pages ---------- */
+// Set once per deploy/restart and added to asset URLs (styles.css?v=...), so caches like Cloudflare fetch the new file.
+const BUILD_VERSION = Date.now().toString(36);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function renderPage() {
   const b = config.brand;
@@ -63,6 +65,7 @@ function renderPage() {
     SITE_URL: b.siteUrl, REPO_URL: b.repoUrl, BASE_URL: config.baseUrl.replace(/\/+$/, ''),
     MAX_FILE_MB: config.limits.maxFileMb, MAX_PAGES: config.limits.maxPages, PER_EMAIL: config.limits.perEmailPerDay,
     TURNSTILE_SITE_KEY: config.turnstile.siteKey, YEAR: new Date().getFullYear(), PRIVACY_URL: b.privacyUrl,
+    BUILD_VERSION,
   };
   return html
     .replace(/<!--TURNSTILE-->([\s\S]*?)<!--\/TURNSTILE-->/g, config.turnstile.siteKey ? '$1' : '')
