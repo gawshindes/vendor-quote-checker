@@ -54,7 +54,7 @@ app.use((req, res, next) => {
 });
 
 /* ---------- Pages ---------- */
-// Set once per deploy/restart and added to asset URLs (styles.css?v=...), so caches like Cloudflare fetch the new file.
+// Set once per deploy/restart and added to asset URLs (styles.css, app.js, favicon.svg ?v=...), so caches like Cloudflare fetch the new files.
 const BUILD_VERSION = Date.now().toString(36);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function renderPage() {
